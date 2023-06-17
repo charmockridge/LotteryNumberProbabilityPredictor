@@ -25,3 +25,5 @@
 |20|Determines whether format_maker_code() is functioning as intended.|"abc123456"|Pass - It should return "Multiple millionaire maker codes"|
 |21|Determines whether format_prize() is functioning as intended.|"\n£123,456,789\n\n"|Pass - It should return ["£123,456,789", "No"]|
 |22|Determines whether format_prize() is functioning as intended.|"£95,264,254\nRolled"|Pass - It should return ["£123,456,789", "Yes"]|
+|23|Determines whether export_to_excel() is functioning as intended.|Filename of "test" and data of [{"Header_1": "Data_1}]|Pass - It should create test.xlsx with a column name of "Header_1" and a data cell with "Data_1"|
+|24|Determines whether export_to_excel() is functioning as intended.|Filename of "test" and data of [{"Col_1": "Data_1.0}, {"Col_2": "Data_2"}]|Pass - It should override test.xlsx with new columns named of "Col_1" and "Col_2" with data "Data_1.0" and "Data_2"|
