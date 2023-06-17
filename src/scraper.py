@@ -90,7 +90,6 @@ def format_maker_code(maker_code):
 def format_prize(prize_information):
     prize = []
     prize_information = prize_information.replace("\n", "")
-    prize_information = prize_information.replace("\'", "")
 
     if "Rolled" in prize_information:
         prize_information = prize_information.replace("Rolled", "")
