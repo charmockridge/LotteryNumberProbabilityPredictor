@@ -50,6 +50,44 @@ def get_euromillions_draw_history():
     export_to_xlsx("euromillions", data)
 
 
+def get_lotto_draw_history():
+    LOTTO_URL = "https://www.lottery.co.uk/euromillions/results/archive-"
+    LOTTO_START_YEAR = 1994
+    current_year = date.today().year
+    data = []
+
+    for i in range(current_year, LOTTO_START_YEAR - 1, -1):
+        response = requests.get(LOTTO_URL + str(i))
+        soup = BeautifulSoup(response.text, "lxml")
+
+        table = soup.find("table")
+        rows = table.find_all("tr")[1:]
+
+        for row in rows:
+            cells = row.find_all("td")
+
+            draw_date = format_draw_date(cells[0].text)
+            drawn_numbers = format_drawn_numbers(cells[1].text)
+            prize = format_prize(cells[2].text)
+
+            draw = {}
+            draw["draw_date"] = draw_date
+            draw["num_1"] = str(drawn_numbers[0])
+            draw["num_2"] = drawn_numbers[1]
+            draw["num_3"] = drawn_numbers[2]
+            draw["num_4"] = drawn_numbers[3]
+            draw["num_5"] = drawn_numbers[4]
+            draw["num_6"] = drawn_numbers[5]
+            draw["bonus_1"] = drawn_numbers[6]
+            draw["jackpot"] = prize[0]
+            draw["rollover"] = prize[1]
+
+            data.append(draw)
+
+        
+    export_to_xlsx("lotto", data)
+
+
 def export_to_xlsx(filename, data):
     df = pd.DataFrame(data)
     df.to_excel(filename + ".xlsx")
@@ -95,6 +133,10 @@ def format_prize(prize_information):
         prize_information = prize_information.replace("Rolled", "")
         prize.append(prize_information)
         prize.append("Yes")
+    elif "Roll Down" in prize_information:
+        prize_information = prize_information.replace("Roll Down", "")
+        prize.append(prize_information)
+        prize.append("Roll Down")
     else:
         prize.append(prize_information)
         prize.append("No")
