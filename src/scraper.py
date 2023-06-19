@@ -27,8 +27,7 @@ def get_lotto_draw_history():
 
     for i in range(current_year, LOTTO_START_YEAR - 1, -1):
         soup = get_html("https://www.lottery.co.uk/euromillions/results/archive-" + str(i))
-        draw = scrape_draw_history(soup, LOTTERY_TYPE)
-        data.append(draw)
+        data.append(scrape_draw_history(soup, LOTTERY_TYPE))
 
     export_to_xlsx("lotto", data)
 
