@@ -32,11 +32,13 @@ def get_lotto_draw_history():
     export_to_xlsx("lotto", data)
 
 
+# Returns HTML of given URL.
 def get_html(URL):
     reposne = requests.get(URL)
     return BeautifulSoup(reposne.text, "lxml")
 
 
+# Scrapes and returns each draw information stored in a table in the given HTML.
 def scrape_draw_history(HTML, lottery_type):
         data = []
         table = HTML.find("table")
@@ -51,6 +53,10 @@ def scrape_draw_history(HTML, lottery_type):
 
             draw["draw_date"] = draw_date
 
+            # Handles information based on lottery type due to different structure.
+            # Euromillions has 5 main numbers and 2 bonus number. It also has a millionaire maker code.
+            # Lotto has 6 main numbers and 1 bonus ball.
+            # Could be refactored num 1 - 5 are same and put 6 and maker code into if statement?
             if lottery_type == "euromillions":
                 if len(cells) == 4:
                     maker_code = format_maker_code(cells[2].text)
@@ -88,6 +94,7 @@ def scrape_draw_history(HTML, lottery_type):
         return data
 
 
+# Exports data to spreadsheet.
 def export_to_xlsx(filename, data):
     formatted_data = []
 
@@ -99,7 +106,11 @@ def export_to_xlsx(filename, data):
     df.to_excel(filename + ".xlsx")
 
 
+# Formats the scraped draw date.
+# Scraped draw date format is: Tuesday 12th Jan 2023 (example)
+# Desired format is: 12/01/2023
 def format_draw_date(draw_date):
+    # Is this necessary of can datetime handle suffixes?
     draw_date = draw_date.replace("th", "")
     draw_date = draw_date.replace("st", "")
     draw_date = draw_date.replace("nd", "")
@@ -109,19 +120,30 @@ def format_draw_date(draw_date):
     return draw_date
 
 
+# Formats scraped drawn numbers into array.
 def format_drawn_numbers(numbers):
     drawn_numbers = numbers.split("\n")
+    # Removes null elements.
     return list(filter(None, drawn_numbers))
 
 
+# Formats the millionaire maker code. Euromillions only.
 def format_maker_code(maker_code):
+    # Four cases for maker code:
+    # It can be null, maker code was introduced in November 2009 yet euromillions began in 2004.
+    # It can have the pattern of 3 characters in capitals followed by 6 digits.
+    # It can have the pattern of 4 characters in capitals followed by 5 digits.
+    # Anything else means there are multiple maker codes.
+
     maker_code = maker_code.replace("\n", "")
 
     if maker_code == "":
         return ""
 
-    pattern_1 = "^[A-Z]{4}[0-9]{5}$"
-    pattern_2 = "^[A-Z]{3}[0-9]{6}$"
+    # Original maker code pattern from 2009.
+    pattern_1 = "^[A-Z]{3}[0-9]{6}$"
+    # From 2016, pattern changed.
+    pattern_2 = "^[A-Z]{4}[0-9]{5}$"
     valid_1 = re.match(pattern_1, maker_code) != None
     valid_2 = re.match(pattern_2, maker_code) != None
 
@@ -131,6 +153,7 @@ def format_maker_code(maker_code):
         return "Multiple millionaire maker codes"
 
 
+# Formats prize information. Splits jackpot from rolled information.
 def format_prize(prize_information):
     prize = []
     prize_information = prize_information.replace("\n", "")
@@ -139,6 +162,8 @@ def format_prize(prize_information):
         prize_information = prize_information.replace("Rolled", "")
         prize.append(prize_information)
         prize.append("Yes")
+    # Roll down is only relevant to lotto.
+    # Roll down is where jackpot is shared on a must win draw where no one matched all numbers.
     elif "Roll Down" in prize_information:
         prize_information = prize_information.replace("Roll Down", "")
         prize.append(prize_information)
